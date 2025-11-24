@@ -3,8 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Plus, Play, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SlideEditor from "./SlideEditor";
 import SlideControls from "./SlideControls";
+import TemplateSelector from "./TemplateSelector";
+import AIContentSuggestions from "./AIContentSuggestions";
+import CollaborationPanel from "./CollaborationPanel";
+import AssetLibrary from "./AssetLibrary";
 
 export interface SlideElement {
   id: string;
@@ -18,20 +23,23 @@ export interface Slide {
   id: string;
   background?: string;
   elements: SlideElement[];
+  transition?: string;
 }
 
 const PresentationCreator = () => {
   const [slides, setSlides] = useState<Slide[]>([
-    { id: "1", elements: [] }
+    { id: "1", elements: [], transition: "fade" }
   ]);
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [selectedElement, setSelectedElement] = useState<string | null>(null);
+  const [presentationId] = useState(`pres-${Date.now()}`);
   const { toast } = useToast();
 
   const addSlide = () => {
     const newSlide: Slide = {
       id: Date.now().toString(),
-      elements: []
+      elements: [],
+      transition: "fade"
     };
     setSlides([...slides, newSlide]);
     setCurrentSlideIndex(slides.length);
@@ -39,6 +47,29 @@ const PresentationCreator = () => {
       title: "Slide added",
       description: `Slide ${slides.length + 1} created`,
     });
+  };
+
+  const addTemplateSlide = (templateSlide: Slide) => {
+    const newSlide: Slide = {
+      ...templateSlide,
+      id: Date.now().toString(),
+      transition: "fade"
+    };
+    setSlides([...slides, newSlide]);
+    setCurrentSlideIndex(slides.length);
+    toast({
+      title: "Template applied",
+      description: "Slide created from template",
+    });
+  };
+
+  const handleAISuggestion = (content: string) => {
+    addElementToSlide("text", content);
+  };
+
+  const setTransition = (transition: string) => {
+    const currentSlide = slides[currentSlideIndex];
+    updateSlide(currentSlideIndex, { ...currentSlide, transition });
   };
 
   const deleteSlide = (index: number) => {
@@ -133,7 +164,7 @@ const PresentationCreator = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-[300px_1fr] gap-6">
+        <div className="grid lg:grid-cols-[300px_1fr_250px] gap-6">
           {/* Slides Panel */}
           <Card className="bg-gradient-card border-border shadow-card">
             <CardHeader>
@@ -181,6 +212,28 @@ const PresentationCreator = () => {
 
           {/* Editor Panel */}
           <div className="space-y-6">
+            <Card className="bg-gradient-card border-border shadow-card">
+              <CardContent className="p-4 flex flex-wrap gap-2">
+                <TemplateSelector onSelectTemplate={addTemplateSlide} />
+                <AIContentSuggestions onApplySuggestion={handleAISuggestion} />
+                <AssetLibrary 
+                  onSelectAvatar={(avatar) => addElementToSlide("avatar", avatar)}
+                  onSelectBackground={setBackground}
+                />
+                <Select value={slides[currentSlideIndex].transition} onValueChange={setTransition}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Transition" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="fade">Fade</SelectItem>
+                    <SelectItem value="slide">Slide</SelectItem>
+                    <SelectItem value="zoom">Zoom</SelectItem>
+                    <SelectItem value="flip">Flip</SelectItem>
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+
             <SlideControls
               onAddElement={addElementToSlide}
               onSetBackground={setBackground}
@@ -213,6 +266,9 @@ const PresentationCreator = () => {
               </Button>
             </div>
           </div>
+
+          {/* Collaboration Panel */}
+          <CollaborationPanel presentationId={presentationId} />
         </div>
       </div>
     </section>
