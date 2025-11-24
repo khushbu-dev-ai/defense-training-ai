@@ -1,7 +1,7 @@
 import Header from "@/components/Header";
 import Hero from "@/components/Hero";
 import Features from "@/components/Features";
-import UploadSection from "@/components/UploadSection";
+import PresentationCreator from "@/components/PresentationCreator";
 import ExportOptions from "@/components/ExportOptions";
 
 const Index = () => {
@@ -10,7 +10,7 @@ const Index = () => {
       <Header />
       <Hero />
       <Features />
-      <UploadSection />
+      <PresentationCreator />
       <ExportOptions />
     </div>
   );
